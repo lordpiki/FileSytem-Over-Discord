@@ -78,6 +78,7 @@ FLT_PREOP_CALLBACK_STATUS MiniPreWrite(
 	PFLT_FILE_NAME_INFORMATION FileNameInfo;
 	NTSTATUS status;
 	WCHAR Name[260] = { 0 };
+	const WCHAR TargetFolder[] = L"\\DOCUMENTS\\TEST\\"; // Relative path, uppercase for comparison
 
 	status = FltGetFileNameInformation(Data, FLT_FILE_NAME_NORMALIZED | FLT_FILE_NAME_QUERY_DEFAULT, &FileNameInfo);
 
@@ -90,17 +91,19 @@ FLT_PREOP_CALLBACK_STATUS MiniPreWrite(
 			if (FileNameInfo->Name.Length < sizeof(Name))
 			{
 				RtlCopyMemory(Name, FileNameInfo->Name.Buffer, FileNameInfo->Name.Length);
+				Name[FileNameInfo->Name.Length / sizeof(WCHAR)] = L'\0'; // Null-terminate
 
 				_wcsupr(Name); // Convert to uppercase for easier comparison
-				if (wcsstr(Name, L"MIKI.TXT") != NULL)
+
+				// Look for the relative path "\DOCUMENTS\TEST\" anywhere in the file name
+				if (wcsstr(Name, TargetFolder) != NULL)
 				{
-					KdPrint(("Write file: %ws blocked\n", Name));
+					KdPrint(("Write file in target folder: %ws blocked\n", Name));
 					Data->IoStatus.Status = STATUS_INVALID_PARAMETER;
 					Data->IoStatus.Information = 0;
 					FltReleaseFileNameInformation(FileNameInfo);
 					return FLT_PREOP_COMPLETE;
 				}
-
 
 				KdPrint(("File Name: %ws\n", Name));
 			}
