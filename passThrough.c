@@ -99,7 +99,7 @@ FLT_PREOP_CALLBACK_STATUS MiniPreWrite(
 				if (wcsstr(Name, TargetFolder) != NULL)
 				{
 					KdPrint(("Write file in target folder: %ws blocked\n", Name));
-					Data->IoStatus.Status = STATUS_INVALID_PARAMETER;
+					Data->IoStatus.Status = STATUS_SUCCESS;
 					Data->IoStatus.Information = 0;
 					FltReleaseFileNameInformation(FileNameInfo);
 					return FLT_PREOP_COMPLETE;
